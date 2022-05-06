@@ -439,14 +439,47 @@ scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
+  struct proc* priorproc=0;
+  struct proc* q=0;
   
   c->proc = 0;
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
 
-    for(p = proc; p < &proc[NPROC]; p++) {
+    
+	for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
+	  if(p->state != RUNNABLE)
+	  {
+		release(&p->lock);
+		continue;
+	  }
+	  
+	  
+      if(p != 0)
+	  {
+        priorproc=p;
+        //找一个最早创建的进程
+        for(q=proc;q<&proc[NPROC];q++)
+		{
+          if(q!=p)
+		  {
+            acquire(&q->lock);
+            if((q->state==RUNNABLE)&&(priorproc->pid>q->pid))
+			{
+              release(&priorproc->lock);
+              priorproc=q;
+            }
+			else
+			{
+              release(&q->lock);
+			}
+          }
+        }
+        p = priorproc;
+	  }
+	  
       if(p->state == RUNNABLE) {
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
@@ -461,6 +494,7 @@ scheduler(void)
       }
       release(&p->lock);
     }
+	
   }
 }
 
