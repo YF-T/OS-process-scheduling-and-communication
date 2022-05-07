@@ -95,3 +95,46 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_semalloc(void)
+{
+  int count;
+
+  if(argint(0, &count) < 0)
+    return -1;
+  return semalloc(count);
+}
+
+uint64
+sys_semfree(void)
+{
+  int semid;
+  
+  if(argint(0, &semid) < 0)
+    return -1;
+  semfree(semid);
+  return 0;
+}
+
+uint64
+sys_sempend(void)
+{
+  int semid;
+  
+  if(argint(0, &semid) < 0)
+    return -1;
+  sempend(semid);
+  return 0;
+}
+
+uint64
+sys_sempost(void)
+{
+  int semid;
+  
+  if(argint(0, &semid) < 0)
+    return -1;
+  sempost(semid);
+  return 0;
+}

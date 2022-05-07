@@ -184,3 +184,9 @@ void            virtio_disk_intr(void);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
+
+// semphore.c
+int             semalloc(int);
+void            semfree(int);
+void            sempend(int);
+void            sempost(int);
