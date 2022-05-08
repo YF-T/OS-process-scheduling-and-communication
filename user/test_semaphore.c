@@ -6,13 +6,15 @@ int main(int argc, char *argv[])
   int semid = semalloc(1);
   if(fork() == 0){
     sempend(semid);
-    for(int i=0;i<10;i++){
+    for(int i=0;i<5;i++){
 			write(1,"A",1);
-      if(i==4){
-        sempost(semid);
-        sleep(10);
-        sempend(semid);
-      }
+			sleep(10);
+		}
+    sempost(semid);
+    sleep(10);
+    sempend(semid);
+    for(int i=0;i<5;i++){
+			write(1,"A",1);
 			sleep(10);
 		}
     sempost(semid);
@@ -20,13 +22,15 @@ int main(int argc, char *argv[])
   }
   if(fork() == 0){
     sempend(semid);
-    for(int i=0;i<10;i++){
+    for(int i=0;i<5;i++){
 			write(1,"B",1);
-      if(i==4){
-        sempost(semid);
-        sleep(10);
-        sempend(semid);
-      }
+			sleep(10);
+		}
+    sempost(semid);
+    sleep(10);
+    sempend(semid);
+    for(int i=0;i<5;i++){
+			write(1,"B",1);
 			sleep(10);
 		}
     sempost(semid);

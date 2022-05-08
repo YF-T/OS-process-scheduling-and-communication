@@ -446,55 +446,44 @@ scheduler(void)
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
-
     
-	for(p = proc; p < &proc[NPROC]; p++) {
+    for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
-	  if(p->state != RUNNABLE)
-	  {
-		release(&p->lock);
-		continue;
-	  }
-	  
-	  
-      if(p != 0)
-	  {
+      if(p->state != RUNNABLE){
+        release(&p->lock);
+        continue;
+      }
+      if(p != 0){
         priorproc=p;
         //找一个最早创建的进程
-        for(q=proc;q<&proc[NPROC];q++)
-		{
-          if(q!=p)
-		  {
+        for(q=proc;q<&proc[NPROC];q++){
+          if(q!=p){
             acquire(&q->lock);
-            if((q->state==RUNNABLE)&&(priorproc->pid>q->pid))
-			{
+            if((q->state==RUNNABLE)&&(priorproc->pid>q->pid)){
               release(&priorproc->lock);
               priorproc=q;
             }
-			else
-			{
+            else{
               release(&q->lock);
-			}
+            }
           }
         }
         p = priorproc;
-	  }
+      }
 	  
-      if(p->state == RUNNABLE) {
+      if(p->state == RUNNABLE){
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
         p->state = RUNNING;
         c->proc = p;
         swtch(&c->context, &p->context);
-
         // Process is done running for now.
         // It should have changed its p->state before coming back.
         c->proc = 0;
       }
       release(&p->lock);
     }
-	
   }
 }
 
