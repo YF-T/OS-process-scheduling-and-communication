@@ -108,6 +108,10 @@ extern uint64 sys_semalloc(void);
 extern uint64 sys_semfree(void);
 extern uint64 sys_sempend(void);
 extern uint64 sys_sempost(void);
+extern uint64 sys_shmalloc(void);
+extern uint64 sys_shmfree(void);
+extern uint64 sys_shmread(void);
+extern uint64 sys_shmwrite(void);
 
 static uint64 (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -135,6 +139,10 @@ static uint64 (*syscalls[])(void) = {
 [SYS_semfree]   sys_semfree,
 [SYS_sempend]   sys_sempend,
 [SYS_sempost]   sys_sempost,
+[SYS_shmalloc]  sys_shmalloc,
+[SYS_shmfree]   sys_shmfree,
+[SYS_shmread]   sys_shmread,
+[SYS_shmwrite]  sys_shmwrite,
 };
 
 void

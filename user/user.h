@@ -24,9 +24,13 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int semalloc(int);
-void semfree(int);
-void sempend(int);
-void sempost(int);
+int semfree(int);
+int sempend(int);
+int sempost(int);
+int shmalloc(void);
+int shmfree(int);
+int shmread(int, void*, int);
+int shmwrite(int, void*, int);
 
 // ulib.c
 int stat(const char*, struct stat*);

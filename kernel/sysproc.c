@@ -138,3 +138,50 @@ sys_sempost(void)
   sempost(semid);
   return 0;
 }
+
+uint64
+sys_shmalloc(void)
+{
+  return shmalloc();
+}
+
+uint64
+sys_shmfree(void)
+{
+  int shmid;
+  
+  if(argint(0, &shmid) < 0)
+    return -1;
+  shmfree(shmid);
+  return 0;
+}
+
+uint64
+sys_shmread(void)
+{
+  int shmid, n;
+  uint64 buff;
+  
+  if(argint(0, &shmid) < 0)
+    return -1;
+  if(argaddr(1, &buff) < 0)
+    return -1;
+  if(argint(2, &n) < 0)
+    return -1;
+  return shmread(shmid, (void*)buff, n);
+}
+
+uint64
+sys_shmwrite(void)
+{
+  int shmid, n;
+  uint64 buff;
+  
+  if(argint(0, &shmid) < 0)
+    return -1;
+  if(argaddr(1, &buff) < 0)
+    return -1;
+  if(argint(2, &n) < 0)
+    return -1;
+  return shmwrite(shmid, (void*)buff, n);
+}

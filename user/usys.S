@@ -125,3 +125,23 @@ sempost:
  li a7, SYS_sempost
  ecall
  ret
+.global shmalloc
+shmalloc:
+ li a7, SYS_shmalloc
+ ecall
+ ret
+.global shmfree
+shmfree:
+ li a7, SYS_shmfree
+ ecall
+ ret
+.global shmread
+shmread:
+ li a7, SYS_shmread
+ ecall
+ ret
+.global shmwrite
+shmwrite:
+ li a7, SYS_shmwrite
+ ecall
+ ret

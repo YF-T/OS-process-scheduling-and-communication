@@ -24,3 +24,8 @@
 #define SYS_semfree   23
 #define SYS_sempend   24
 #define SYS_sempost   25
+#define SYS_shmalloc  26
+#define SYS_shmfree   27
+#define SYS_shmread   28
+#define SYS_shmwrite  29
+
