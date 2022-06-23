@@ -121,3 +121,7 @@ struct proc {
 int random(int max);
 
 void settickets(int pid, int tickets);
+
+void lower_priority(struct proc* p);
+
+void move_to(struct proc* src, struct proc* dst);

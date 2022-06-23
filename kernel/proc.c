@@ -6,12 +6,32 @@
 #include "proc.h"
 #include "defs.h"
 
-
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
 
 struct proc *initproc;
+
+#define HIGH_PRIORITY_END 15
+#define MID_PRIORITY_END 40
+#define TIME_THRESHOLD 300
+
+#define isHighPriority(i) 0 <= (i) && (i) <= HIGH_PRIORITY_END
+#define isMidPriority(i) HIGH_PRIORITY_END < (i) && (i) <= MID_PRIORITY_END
+#define isLowPriority(i) MID_PRIORITY_END < (i) && (i) < NPROC
+#define procOffset(i)
+
+struct Queue {
+  struct proc* high;
+  struct proc* mid;
+  struct proc* low;
+} queue = {
+  &proc[0],
+  &proc[HIGH_PRIORITY_END + 1],
+  &proc[MID_PRIORITY_END + 1]
+  };
+
+
 
 int nextpid = 1;
 struct spinlock pid_lock;
@@ -463,6 +483,11 @@ scheduler(void)
   // struct proc* q=0;
   
   c->proc = 0;
+
+  // for Multilevel feedback queue
+  int highDone = 0;
+  int midDone = 0;
+
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
@@ -524,9 +549,28 @@ scheduler(void)
       // ---Priority Queue end ---
       
       // ---Multilevel Feedback Queue start---
-      // 将进程表划分为 4 个部分，0~15 为高优先级，16~31 为中优先级，32~48 为较低优先级，49~63 为低优先级
-      // 进程默认为中优先级，如果 ticks 大于一个值则降低优先级，否则保持不变
-      // 从最高优先级开始执行
+      // 将进程表划分为 3 个部分，0~15 为中优先级，16~31 为中优先级，32~48 为较低优先级，49~63 为低优先级
+      if (p!=0) {
+        int i = p - &proc[0]; // 获取偏移
+        
+
+       if (isHighPriority(i)) {
+        highDone = 1; 
+       } else if (isMidPriority(i)) {
+        if (!highDone) {
+          midDone = 1;
+        }
+       } else { // low isLowPriority
+        if (highDone || midDone) {
+          continue;
+        }
+       }
+
+      if (p->run_time > TIME_THRESHOLD) {
+        lower_priority(p);
+      }
+      }
+      
       // ---Multilevel Feedback Queue end---
       
       if(p->state == RUNNABLE)
@@ -831,14 +875,14 @@ random(int max) {
   static int z4 = 12345; 
 
   int b;
-  b = (((z1 << 6) ^ z1) >> 13);
-  z1 = (((z1 & 4294967294) << 18) ^ b);
-  b = (((z2 << 2) ^ z2) >> 27);
-  z2 = (((z2 & 4294967288) << 2) ^ b);
+  b = (((z1 << 6) ^ z1) >> 17);
+  z1 = (((z1 & 4294967288) << 14) ^ b);
+  b = (((z2 << 2) ^ z2) >> 25);
+  z2 = (((z2 & 4294967294) << 2) ^ b);
   b = (((z3 << 13) ^ z3) >> 21);
-  z3 = (((z3 & 4294967280) << 7) ^ b);
+  z3 = (((z3 & 4294967168) << 7) ^ b);
   b = (((z4 << 3) ^ z4) >> 12);
-  z4 = (((z4 & 4294967168) << 13) ^ b);
+  z4 = (((z4 & 4294967280) << 13) ^ b);
 
   
   int rand = ((z1 ^ z2 ^ z3 ^ z4)) % max;
@@ -850,39 +894,24 @@ random(int max) {
   return rand;
 }
 
-struct proc* find_next_process(int *index1, int *index2, int *index3, uint *priority) {
-  int i;
-  struct proc* proc2;
-notfound:
-  for (i = 0; i < NPROC; i++) {
-    switch(*priority) {
-      case 1:
-        proc2 = &proc[(*index1 + i) % NPROC];
-        if (proc2->state == RUNNABLE && proc2->priority == *priority) {
-          *index1 = (*index1 + 1 + i) % NPROC;
-          return proc2; 
-        }
-      case 2:
-        proc2 = &proc[(*index2 + i) % NPROC];
-        if (proc2->state == RUNNABLE && proc2->priority == *priority) {
-          *index2 = (*index2 + 1 + i) % NPROC;
-          return proc2; 
-        }
-      case 3:
-        proc2 = &proc[(*index3 + i) % NPROC];
-        if (proc2->state == RUNNABLE && proc2->priority == *priority){
-          *index3 = (*index3 + 1 + i) % NPROC;
-          return proc2; 
-        }
-    }
+void move_to(struct proc* src, struct proc* dst) {
+  acquire(&dst->lock);
+  dst = src;
+  proc[dst - &proc[0]] = *allocproc();
+  release(&dst->lock);
+}
+void
+lower_priority(struct proc* p) {
+  int i = p - &proc[0];
+  if (isHighPriority(i)) {
+    queue.high--;
+    queue.mid++;
+    move_to(p, queue.mid);
+  } else if (isMidPriority(i)) {
+    queue.mid--;
+    queue.low++;
+    move_to(p, queue.low);
   }
-  if (*priority == 3) {//did not find any process on any of the prorities
-    *priority = 3;
-    return 0;
-  }
-  else {
-    *priority += 1; //will try to find a process at a lower priority (ighter value of priority)
-    goto notfound;
-  }
-  return 0;
+
+  return;
 }
