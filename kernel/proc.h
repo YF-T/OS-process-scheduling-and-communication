@@ -108,11 +108,14 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   int tickets;                 // Tickets for lottery algorithm
-   int create_time;             //进程创建的系统时间
-  int ready_time;              //进程就绪的时间
-  int run_time;                //进程运行的时间
-  int finish_time;             //进程结束的时间
-  int priority;                //优先级
+
+  int create_time;             // 进程创建的系统时间
+  int ready_time;              // 进程就绪的时间
+  int run_time;                // 进程运行的时间
+  int finish_time;             // 进程结束的时间
+  int priority;                // 优先级
+
+  
 };
 
 int random(int max);

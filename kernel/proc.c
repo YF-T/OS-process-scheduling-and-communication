@@ -474,66 +474,64 @@ scheduler(void)
         continue;
       }
       // ---lottery start---     
-      int total_tickets = get_total_tickets();
-      int draw = -1;
-
-      if (total_tickets > 0) {
-        draw = random(total_tickets);
-      }
-        
-
-      draw = draw - p->tickets;
-
-      // process with a great number of tickets has more probability to put draw to 0 or negative and execute
-      if(draw >= 0) {
-        release(&p->lock);
-        continue;
-        
-      }
-      // ---lottery end---
-      
-      // ---priority queue start---
-      // struct proc* priorproc=0;
-      // struct proc* q = 0;//局部变量，用于与最高优先级进程的比较
-      // if(p->state != RUNNABLE){
+      // int total_tickets = get_total_tickets();
+      // int draw = -1;
+      // if (total_tickets > 0) {
+      //   draw = random(total_tickets);
+      // }
+      // draw = draw - p->tickets;
+      // // process with a great number of tickets has more probability to put draw to 0 or negative and execute
+      // if(draw >= 0) {
       //   release(&p->lock);
       //   continue;
       // }
-      // if(p != 0){
-      //   priorproc=p;
-      //   //找一个最早创建的进程
-      //   for(q=proc;q<&proc[NPROC];q++){
-      //     if(q!=p){
-      //       if((q->state==RUNNABLE)&&(priorproc->pid>q->pid)){
-      //         priorproc=q;
-      //       }
-      //     }
-      //   }
-      //   release(&p->lock);
-      //   p = priorproc;
-      //   acquire(&p->lock);
-      // }
+      // ---lottery end---
+      
+      // ---priority queue start---
+      struct proc* priorproc=0;
+      struct proc* q = 0;//局部变量，用于与最高优先级进程的比较
+      
+      if(p != 0){
+        priorproc=p;
+        //找一个最早创建的进程
+        for(q=proc;q<&proc[NPROC];q++){
+          if(q!=p){
+            if((q->state==RUNNABLE)&&(priorproc->pid>q->pid)){
+              priorproc=q;
+            }
+          }
+        }
+        release(&p->lock);
+        p = priorproc;
+        acquire(&p->lock);
+      }
       // --- priority queue end ---
 
       // ---FCFS start---
       // if(p != 0){
-      //   priorproc=p;
-      //   //找一个最早创建的进程
-      //   for(q=proc;q<&proc[NPROC];q++){
-      //     if(q!=p){
-      //       acquire(&q->lock);
-      //       if((q->state==RUNNABLE)&&(priorproc->pid>q->pid)){
-      //         release(&priorproc->lock);
-      //         priorproc=q;
-      //       }
-      //       else{
-      //         release(&q->lock);
-      //       }
+      // priorproc = p;
+      // for (q = proc; q < &proc[NPROC]; q++){ //找到优先级最高的进程
+      // if(q!=p){
+      //     //acquire(&q->lock);
+      //     if ((q->state == RUNNABLE)&&(priorproc->priority < q->priority)){
+            
+      //       priorproc = q;
       //     }
       //   }
+      //   release(&p->lock); q
       //   p = priorproc;
+      //   acquire(&p->lock);
       // }
       // ---FCFS end ---
+      
+      // ---Multilevel Feedback Queue start---
+      // 将进程表划分为 4 个部分，0~15 为高优先级，16~31 为中优先级，32~48 为较低优先级，49~63 为低优先级
+      // 进程默认为中优先级，如果 ticks 大于一个值则降低优先级，否则保持不变
+      // 从最高优先级开始执行
+
+
+      // ---Multilevel Feedback Queue end---
+      
       if(p != 0)
       {
 
