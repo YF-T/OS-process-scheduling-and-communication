@@ -34,6 +34,9 @@ int shmwrite(int, void*, int, int);
 int mqpush(int, char*, int);
 int mqpop(int*, char*, int);
 int mqtypepop(int, char*, int);
+void settickets(int, int);
+void changepri(int, int);
+void showpid(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

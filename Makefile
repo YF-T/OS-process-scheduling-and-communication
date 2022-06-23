@@ -139,6 +139,9 @@ UPROGS=\
 	$U/_processtest\
 	$U/_test_FCFS\
   $U/_test_semaphore\
+  $U/_test_lottery\
+  $U/_change\
+  $U/_newfork\
   $U/_test_shm\
   $U/_test_mq\
 

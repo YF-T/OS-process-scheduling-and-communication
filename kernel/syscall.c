@@ -108,6 +108,9 @@ extern uint64 sys_semalloc(void);
 extern uint64 sys_semfree(void);
 extern uint64 sys_sempend(void);
 extern uint64 sys_sempost(void);
+extern uint64 sys_settickets(void);
+extern uint64 sys_changepri(void);
+extern uint64 sys_showpid(void);
 extern uint64 sys_shmalloc(void);
 extern uint64 sys_shmfree(void);
 extern uint64 sys_shmread(void);
@@ -149,6 +152,9 @@ static uint64 (*syscalls[])(void) = {
 [SYS_mqpush]    sys_mqpush,
 [SYS_mqpop]     sys_mqpop,
 [SYS_mqtypepop] sys_mqtypepop,
+[SYS_settickets] sys_settickets,
+[SYS_changepri]   sys_changepri,
+[SYS_showpid]    sys_showpid,
 };
 
 void
