@@ -144,6 +144,7 @@ UPROGS=\
   $U/_newfork\
   $U/_test_shm\
   $U/_test_mq\
+  $U/_test_process\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
