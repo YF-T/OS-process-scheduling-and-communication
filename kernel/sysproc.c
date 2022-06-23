@@ -147,6 +147,22 @@ sys_settickets(void) {
   if(argint(0, &pid) < 0 || argint(1, &tickets) < 0)
     return -1;
   settickets(pid, tickets);
+}
+
+uint64
+sys_shmalloc(void)
+{
+  return shmalloc();
+}
+
+uint64
+sys_shmfree(void)
+{
+  int shmid;
+  
+  if(argint(0, &shmid) < 0)
+    return -1;
+  shmfree(shmid);
   return 0;
 }
 
@@ -169,4 +185,83 @@ sys_changepri(void)
 uint64 sys_showpid(void)
 {
     return showpid();
+}
+
+uint64
+sys_shmread(void)
+{
+  int shmid, start, n;
+  uint64 buff;
+  
+  if(argint(0, &shmid) < 0)
+    return -1;
+  if(argaddr(1, &buff) < 0)
+    return -1;
+  if(argint(2, &start) < 0)
+    return -1;
+  if(argint(3, &n) < 0)
+    return -1;
+  return shmread(shmid, (void*)buff, start, n);
+}
+
+uint64
+sys_shmwrite(void)
+{
+  int shmid, start, n;
+  uint64 buff;
+  
+  if(argint(0, &shmid) < 0)
+    return -1;
+  if(argaddr(1, &buff) < 0)
+    return -1;
+  if(argint(2, &start) < 0)
+    return -1;
+  if(argint(3, &n) < 0)
+    return -1;
+  return shmwrite(shmid, (void*)buff, start, n);
+}
+
+uint64
+sys_mqpush(void)
+{
+  int type, n;
+  uint64 buff;
+  
+  if(argint(0, &type) < 0)
+    return -1;
+  if(argaddr(1, &buff) < 0)
+    return -1;
+  if(argint(2, &n) < 0)
+    return -1;
+  return mqpush(type, (char*)buff, n);
+}
+
+uint64
+sys_mqpop(void)
+{
+  int n;
+  uint64 type, buff;
+  
+  if(argaddr(0, &type) < 0)
+    return -1;
+  if(argaddr(1, &buff) < 0)
+    return -1;
+  if(argint(2, &n) < 0)
+    return -1;
+  return mqpop((int*)type, (char*)buff, n);
+}
+
+uint64
+sys_mqtypepop(void)
+{
+  int type, n;
+  uint64 buff;
+  
+  if(argint(0, &type) < 0)
+    return -1;
+  if(argaddr(1, &buff) < 0)
+    return -1;
+  if(argint(2, &n) < 0)
+    return -1;
+  return mqtypepop(type, (char*)buff, n);
 }

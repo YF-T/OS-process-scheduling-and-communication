@@ -30,7 +30,12 @@ OBJS = \
   $K/plic.o \
   $K/virtio_disk.o \
   $K/semaphore.o \
+<<<<<<< HEAD
   
+=======
+  $K/shm.o \
+  $K/mq.o \
+>>>>>>> ce53dc4b71272ff65a44e6d8ee5f7197878c1a99
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
@@ -141,6 +146,8 @@ UPROGS=\
   $U/_test_lottery\
   $U/_change\
   $U/_newfork\
+  $U/_test_shm\
+  $U/_test_mq\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

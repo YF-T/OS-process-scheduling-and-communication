@@ -24,6 +24,13 @@
 #define SYS_semfree   23
 #define SYS_sempend   24
 #define SYS_sempost   25
-#define SYS_settickets 26
-#define SYS_changepri   27
-#define SYS_showpid   28
+#define SYS_shmalloc  26
+#define SYS_shmfree   27
+#define SYS_shmread   28
+#define SYS_shmwrite  29
+#define SYS_mqpush    30
+#define SYS_mqpop     31
+#define SYS_mqtypepop 32
+#define SYS_settickets 40
+#define SYS_changepri   50
+#define SYS_showpid   60
