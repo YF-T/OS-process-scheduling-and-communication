@@ -159,31 +159,35 @@ sys_shmfree(void)
 uint64
 sys_shmread(void)
 {
-  int shmid, n;
+  int shmid, start, n;
   uint64 buff;
   
   if(argint(0, &shmid) < 0)
     return -1;
   if(argaddr(1, &buff) < 0)
     return -1;
-  if(argint(2, &n) < 0)
+  if(argint(2, &start) < 0)
     return -1;
-  return shmread(shmid, (void*)buff, n);
+  if(argint(3, &n) < 0)
+    return -1;
+  return shmread(shmid, (void*)buff, start, n);
 }
 
 uint64
 sys_shmwrite(void)
 {
-  int shmid, n;
+  int shmid, start, n;
   uint64 buff;
   
   if(argint(0, &shmid) < 0)
     return -1;
   if(argaddr(1, &buff) < 0)
     return -1;
-  if(argint(2, &n) < 0)
+  if(argint(2, &start) < 0)
     return -1;
-  return shmwrite(shmid, (void*)buff, n);
+  if(argint(3, &n) < 0)
+    return -1;
+  return shmwrite(shmid, (void*)buff, start, n);
 }
 
 uint64

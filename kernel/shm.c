@@ -42,29 +42,29 @@ shmfree(int shmid)
 }
 
 int
-shmread(int shmid, void* buff, int n)
+shmread(int shmid, void* buff, int start, int n)
 {
   acquire(&shm[shmid].lock);
-  if(n > shm[shmid].length){
-    n = shm[shmid].length;
+  if(n + start > shm[shmid].length){
+    n = shm[shmid].length - start;
   }
   struct proc* p = myproc();
-  copyout(p->pagetable, (uint64)buff, (char*)shm[shmid].addr, n);
+  copyout(p->pagetable, (uint64)buff, (char*)shm[shmid].addr + start, n);
   release(&shm[shmid].lock);
   return n;
 }
 
 int
-shmwrite(int shmid, void* buff, int n)
+shmwrite(int shmid, void* buff, int start, int n)
 {
   acquire(&shm[shmid].lock);
-  if(n > PGSIZE){
+  if(start + n > PGSIZE){
     release(&shm[shmid].lock);
     return -1;
   }
   struct proc* p = myproc();
-  copyin(p->pagetable, (char*)shm[shmid].addr, (uint64)buff, n);
-  shm[shmid].length = n;
+  copyin(p->pagetable, (char*)shm[shmid].addr + start, (uint64)buff, n);
+  shm[shmid].length = start + n;
   release(&shm[shmid].lock);
   return n;
 }

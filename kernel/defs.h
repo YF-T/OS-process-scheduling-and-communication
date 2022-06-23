@@ -194,8 +194,8 @@ void            sempost(int);
 // shm.c
 int             shmalloc(void);
 void            shmfree(int);
-int             shmread(int, void*, int);
-int             shmwrite(int, void*, int);
+int             shmread(int, void*, int, int);
+int             shmwrite(int, void*, int, int);
 
 // mq.c
 void            mqinit();
