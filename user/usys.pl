@@ -41,4 +41,5 @@ entry("semalloc");
 entry("semfree");
 entry("sempend");
 entry("sempost");
-
+entry("showpid");
+entry("changepri");

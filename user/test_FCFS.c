@@ -3,26 +3,36 @@
 
 int main(int argc, char *argv[])
 {
-  if(fork() == 0)
-  {
-    write(1,"1\n",2);
-    exit(0);
-  }
-  if(fork() == 0)
-  {
-    write(1,"2\n",2);
-    exit(0);
-  }
-  if(fork() == 0)
-  {
-    write(1,"3\n",2);
-    exit(0);
-  }
-  int a=0;
-  for(int i = 0; i < 100000000; i++)
-    a += 1;
-  wait(0);
-  wait(0);
-  wait(0);
-  exit(0);
+	int a = 0;
+	if (fork() == 0)
+	{
+		for (int i = 0; i < 10; i++)
+			write(1, "a", 1);
+		for (int i = 0; i < 10000000; i++)
+		a += 1;
+		exit(0);
+	}
+	if (fork() == 0)
+	{
+		for (int i = 0; i < 10; i++)
+			write(1, "b", 1);
+		for (int i = 0; i < 10000000; i++)
+		a += 1;
+		exit(0);
+	}
+	if (fork() == 0)
+	{
+		for (int i = 0; i < 10; i++)
+			write(1, "c", 1);
+		for (int i = 0; i < 10000000; i++)
+		a += 1;
+		exit(0);
+	}
+	for (int i = 0; i < 1000000000; i++)
+		a += 1;
+	printf("\n");
+	wait(0);
+	wait(0);
+	wait(0);
+	exit(0);
 }

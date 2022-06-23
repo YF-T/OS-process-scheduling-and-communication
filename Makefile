@@ -139,7 +139,8 @@ UPROGS=\
 	$U/_test_FCFS\
   $U/_test_semaphore\
   $U/_test_lottery\
-  $U/_test_sanity\
+  $U/_change\
+  $U/_newfork\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

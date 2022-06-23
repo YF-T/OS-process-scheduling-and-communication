@@ -125,6 +125,9 @@ found:
   p->pid = allocpid();
   p->state = USED;
 
+  p->create_time = ticks;
+  p->priority = 12;
+
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
     freeproc(p);
@@ -320,6 +323,7 @@ fork(void)
 
   acquire(&np->lock);
   np->state = RUNNABLE;
+  np->ready_time = ticks;
   release(&np->lock);
 
   return pid;
@@ -375,6 +379,7 @@ exit(int status)
   
   acquire(&p->lock);
 
+  p->finish_time = ticks;
   p->xstate = status;
   p->state = ZOMBIE;
 
@@ -414,6 +419,14 @@ wait(uint64 addr)
             release(&wait_lock);
             return -1;
           }
+          pid = np->pid; //deleteable
+          printf("--------------------------\n");
+          printf("pid %d Created time: %d\n", pid, np->create_time);
+          printf("pid %d Ready time: %d\n", pid, np->ready_time);
+          printf("pid %d Run time: %d\n", pid, np->run_time);
+          printf("pid %d Finish time: %d\n", pid, np->finish_time);
+          printf("Current time: %d\n", ticks);
+          printf("--------------------------\n");
           freeproc(np);
           release(&np->lock);
           release(&wait_lock);
@@ -460,7 +473,7 @@ scheduler(void)
         release(&p->lock);
         continue;
       }
-      
+      // ---lottery start---     
       int total_tickets = get_total_tickets();
       int draw = -1;
 
@@ -477,7 +490,32 @@ scheduler(void)
         continue;
         
       }
-        
+      // ---lottery end---
+      
+      // ---priority queue start---
+      // struct proc* priorproc=0;
+      // struct proc* q = 0;//局部变量，用于与最高优先级进程的比较
+      // if(p->state != RUNNABLE){
+      //   release(&p->lock);
+      //   continue;
+      // }
+      // if(p != 0){
+      //   priorproc=p;
+      //   //找一个最早创建的进程
+      //   for(q=proc;q<&proc[NPROC];q++){
+      //     if(q!=p){
+      //       if((q->state==RUNNABLE)&&(priorproc->pid>q->pid)){
+      //         priorproc=q;
+      //       }
+      //     }
+      //   }
+      //   release(&p->lock);
+      //   p = priorproc;
+      //   acquire(&p->lock);
+      // }
+      // --- priority queue end ---
+
+      // ---FCFS start---
       // if(p != 0){
       //   priorproc=p;
       //   //找一个最早创建的进程
@@ -495,7 +533,7 @@ scheduler(void)
       //   }
       //   p = priorproc;
       // }
-
+      // ---FCFS end ---
       if(p != 0)
       {
 
@@ -504,6 +542,7 @@ scheduler(void)
       // before jumping back to us.
       c->proc = p;
       p->state = RUNNING;
+      p->run_time=ticks;
 
       swtch(&(c->context), &(p->context));
 
@@ -514,6 +553,53 @@ scheduler(void)
       release(&p->lock);
     }
   }
+}
+
+uint64
+changepri(int num, int priority) //动态优先级，更改进程的优先级
+{
+    
+  struct proc *p;
+  for (p = proc; p < &proc[NPROC]; p++)
+  {
+    acquire(&p->lock);
+    if (p->pid == num)
+    {
+      p->priority = priority;
+      release(&p->lock);
+      break;
+    }
+    else{
+      release(&p->lock);
+      }
+    }
+  return num;
+}
+
+uint64
+showpid(void)  //打印所有进程信息，方便测试
+{
+    struct proc *p;
+    intr_on();
+    printf("name    \t pid  \t state    \t priority \n");
+    for (p = proc; p < &proc[NPROC]; p++)
+    {   
+      acquire(&p->lock);
+      if (p->state == SLEEPING)
+      {
+        printf("%s      \t %d \t SLEEPING \t %d\n", p->name, p->pid, p->priority);
+      }
+      else if (p->state == RUNNING)
+      {
+        printf("%s      \t %d \t RUNNING \t %d\n", p->name, p->pid, p->priority);
+      }
+        else if (p->state == RUNNABLE)
+      {
+        printf("%s      \t %d \t RUNNABLE \t %d\n", p->name, p->pid, p->priority);
+      }
+      release(&p->lock);
+    }
+  return 1;
 }
 
 // Switch to scheduler.  Must hold only p->lock
@@ -768,7 +854,7 @@ random(int max) {
   return rand;
 }
 
-struct proc* findReadyProcess(int *index1, int *index2, int *index3, uint *priority) {
+struct proc* find_next_process(int *index1, int *index2, int *index3, uint *priority) {
   int i;
   struct proc* proc2;
 notfound:

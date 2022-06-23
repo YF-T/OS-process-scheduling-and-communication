@@ -130,3 +130,13 @@ sempost:
  li a7, SYS_sempost
  ecall
  ret
+.global showpid
+showpid:
+ li a7, SYS_showpid
+ ecall
+ ret
+.global changepri
+changepri:
+ li a7, SYS_changepri
+ ecall
+ ret

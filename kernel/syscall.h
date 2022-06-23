@@ -25,3 +25,5 @@
 #define SYS_sempend   24
 #define SYS_sempost   25
 #define SYS_settickets 26
+#define SYS_changepri   27
+#define SYS_showpid   28

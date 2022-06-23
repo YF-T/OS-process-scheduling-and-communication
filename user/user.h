@@ -28,6 +28,8 @@ void semfree(int);
 void sempend(int);
 void sempost(int);
 void settickets(int, int);
+void changepri(int, int);
+void showpid(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

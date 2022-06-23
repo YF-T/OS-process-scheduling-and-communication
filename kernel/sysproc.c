@@ -149,3 +149,24 @@ sys_settickets(void) {
   settickets(pid, tickets);
   return 0;
 }
+
+uint64
+sys_changepri(void)
+{
+    int pidnum;
+    int priority;
+    if (argint(0, &pidnum) < 0)
+    {
+        return -1;
+    }
+    if (argint(1, &priority))
+    {
+        return -1;
+    }
+    return changepri(pidnum, priority);
+}
+
+uint64 sys_showpid(void)
+{
+    return showpid();
+}
