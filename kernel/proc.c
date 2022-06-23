@@ -469,6 +469,8 @@ scheduler(void)
     
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
+      struct proc* priorproc=0;
+      struct proc* q = 0;//局部变量，用于与最高优先级进程的比较
       if(p->state != RUNNABLE){
         release(&p->lock);
         continue;
@@ -487,10 +489,7 @@ scheduler(void)
       // }
       // ---lottery end---
       
-      // ---priority queue start---
-      struct proc* priorproc=0;
-      struct proc* q = 0;//局部变量，用于与最高优先级进程的比较
-      
+      // ---FCFS start---
       if(p != 0){
         priorproc=p;
         //找一个最早创建的进程
@@ -505,9 +504,9 @@ scheduler(void)
         p = priorproc;
         acquire(&p->lock);
       }
-      // --- priority queue end ---
+      // ---FCFS end ---
 
-      // ---FCFS start---
+      // ---Priority Queue start---
       // if(p != 0){
       // priorproc = p;
       // for (q = proc; q < &proc[NPROC]; q++){ //找到优先级最高的进程
@@ -522,17 +521,15 @@ scheduler(void)
       //   p = priorproc;
       //   acquire(&p->lock);
       // }
-      // ---FCFS end ---
+      // ---Priority Queue end ---
       
       // ---Multilevel Feedback Queue start---
       // 将进程表划分为 4 个部分，0~15 为高优先级，16~31 为中优先级，32~48 为较低优先级，49~63 为低优先级
       // 进程默认为中优先级，如果 ticks 大于一个值则降低优先级，否则保持不变
       // 从最高优先级开始执行
-
-
       // ---Multilevel Feedback Queue end---
       
-      if(p != 0)
+      if(p->state == RUNNABLE)
       {
 
       // Switch to chosen process.  It is the process's job
@@ -541,7 +538,7 @@ scheduler(void)
       c->proc = p;
       p->state = RUNNING;
       p->run_time=ticks;
-
+      
       swtch(&(c->context), &(p->context));
 
       // Process is done running for now.
@@ -777,7 +774,8 @@ procdump(void)
   };
   struct proc *p;
   char *state;
-  printf("---procdump---");
+  printf("---procdump---\n");
+  printf("pid, state, name, tickets, priority\n");
   for(p = proc; p < &proc[NPROC]; p++){
     if(p->state == UNUSED)
       continue;
@@ -785,7 +783,7 @@ procdump(void)
       state = states[p->state];
     else
       state = "???";
-    printf("%d %s %s %d", p->pid, state, p->name, p->tickets);
+    printf("%d %s %s %d, %d", p->pid, state, p->name, p->tickets, p->priority);
     printf("\n");
   }
 }
