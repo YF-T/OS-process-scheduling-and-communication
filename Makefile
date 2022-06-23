@@ -145,6 +145,7 @@ UPROGS=\
   $U/_test_shm\
   $U/_test_mq\
   $U/_test_process\
+  $U/_settickets\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

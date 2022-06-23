@@ -34,6 +34,9 @@ struct Queue {
 
 
 int nextpid = 1;
+
+int total_tickets = 0; // put here for debugging
+
 struct spinlock pid_lock;
 
 extern void forkret(void);
@@ -485,8 +488,8 @@ scheduler(void)
   c->proc = 0;
 
   // for Multilevel feedback queue
-  int highDone = 0;
-  int midDone = 0;
+  // int highDone = 0;
+  // int midDone = 0;
 
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
@@ -494,41 +497,42 @@ scheduler(void)
     
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
-      struct proc* priorproc=0;
-      struct proc* q = 0;//局部变量，用于与最高优先级进程的比较
+      // struct proc* priorproc=0;
+      // struct proc* q = 0;//局部变量，用于与最高优先级进程的比较
       if(p->state != RUNNABLE){
         release(&p->lock);
         continue;
       }
       // ---lottery start---     
-      // int total_tickets = get_total_tickets();
-      // int draw = -1;
-      // if (total_tickets > 0) {
-      //   draw = random(total_tickets);
-      // }
-      // draw = draw - p->tickets;
-      // // process with a great number of tickets has more probability to put draw to 0 or negative and execute
-      // if(draw >= 0) {
-      //   release(&p->lock);
-      //   continue;
-      // }
+      total_tickets = get_total_tickets();
+      int draw = -1;
+      if (total_tickets > 0) {
+        draw = random(total_tickets);
+      }
+      
+      draw = draw - p->tickets;
+      
+      if(draw >= 0) {
+        release(&p->lock);
+        continue;
+      }
       // ---lottery end---
       
       // ---FCFS start---
-      if(p != 0){
-        priorproc=p;
-        //找一个最早创建的进程
-        for(q=proc;q<&proc[NPROC];q++){
-          if(q!=p){
-            if((q->state==RUNNABLE)&&(priorproc->pid>q->pid)){
-              priorproc=q;
-            }
-          }
-        }
-        release(&p->lock);
-        p = priorproc;
-        acquire(&p->lock);
-      }
+      // if(p != 0){
+      //   priorproc=p;
+      //   //找一个最早创建的进程
+      //   for(q=proc;q<&proc[NPROC];q++){
+      //     if(q!=p){
+      //       if((q->state==RUNNABLE)&&(priorproc->pid>q->pid)){
+      //         priorproc=q;
+      //       }
+      //     }
+      //   }
+      //   release(&p->lock);
+      //   p = priorproc;
+      //   acquire(&p->lock);
+      // }
       // ---FCFS end ---
 
       // ---Priority Queue start---
@@ -550,26 +554,26 @@ scheduler(void)
       
       // ---Multilevel Feedback Queue start---
       // 将进程表划分为 3 个部分，0~15 为中优先级，16~31 为中优先级，32~48 为较低优先级，49~63 为低优先级
-      if (p!=0) {
-        int i = p - &proc[0]; // 获取偏移
+      // if (p!=0) {
+      //   int i = p - &proc[0]; // 获取偏移
         
 
-       if (isHighPriority(i)) {
-        highDone = 1; 
-       } else if (isMidPriority(i)) {
-        if (!highDone) {
-          midDone = 1;
-        }
-       } else { // low isLowPriority
-        if (highDone || midDone) {
-          continue;
-        }
-       }
+      //  if (isHighPriority(i)) {
+      //   highDone = 1; 
+      //  } else if (isMidPriority(i)) {
+      //   if (!highDone) {
+      //     midDone = 1;
+      //   }
+      //  } else { // low isLowPriority
+      //   if (highDone || midDone) {
+      //     continue;
+      //   }
+      //  }
 
-      if (p->run_time > TIME_THRESHOLD) {
-        lower_priority(p);
-      }
-      }
+      // if (p->run_time > TIME_THRESHOLD) {
+      //   lower_priority(p);
+      // }
+      // }
       
       // ---Multilevel Feedback Queue end---
       
@@ -819,6 +823,7 @@ procdump(void)
   struct proc *p;
   char *state;
   printf("---procdump---\n");
+  printf("total_tickets: %d\n", total_tickets);
   printf("pid, state, name, tickets, priority\n");
   for(p = proc; p < &proc[NPROC]; p++){
     if(p->state == UNUSED)
