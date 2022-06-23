@@ -31,6 +31,7 @@ OBJS = \
   $K/virtio_disk.o \
   $K/semaphore.o \
   $K/shm.o \
+  $K/mq.o \
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
@@ -139,6 +140,7 @@ UPROGS=\
 	$U/_test_FCFS\
   $U/_test_semaphore\
   $U/_test_shm\
+  $U/_test_mq\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

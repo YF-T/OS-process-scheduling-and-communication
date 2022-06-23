@@ -145,3 +145,18 @@ shmwrite:
  li a7, SYS_shmwrite
  ecall
  ret
+.global mqpush
+mqpush:
+ li a7, SYS_mqpush
+ ecall
+ ret
+.global mqpop
+mqpop:
+ li a7, SYS_mqpop
+ ecall
+ ret
+.global mqtypepop
+mqtypepop:
+ li a7, SYS_mqtypepop
+ ecall
+ ret

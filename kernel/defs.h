@@ -196,3 +196,9 @@ int             shmalloc(void);
 void            shmfree(int);
 int             shmread(int, void*, int);
 int             shmwrite(int, void*, int);
+
+// mq.c
+void            mqinit();
+int             mqpush(int, char*, int);
+int             mqpop(int*, char*, int);
+int             mqtypepop(int, char*, int);

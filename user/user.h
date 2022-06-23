@@ -31,6 +31,9 @@ int shmalloc(void);
 int shmfree(int);
 int shmread(int, void*, int);
 int shmwrite(int, void*, int);
+int mqpush(int, char*, int);
+int mqpop(int*, char*, int);
+int mqtypepop(int, char*, int);
 
 // ulib.c
 int stat(const char*, struct stat*);

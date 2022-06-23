@@ -185,3 +185,48 @@ sys_shmwrite(void)
     return -1;
   return shmwrite(shmid, (void*)buff, n);
 }
+
+uint64
+sys_mqpush(void)
+{
+  int type, n;
+  uint64 buff;
+  
+  if(argint(0, &type) < 0)
+    return -1;
+  if(argaddr(1, &buff) < 0)
+    return -1;
+  if(argint(2, &n) < 0)
+    return -1;
+  return mqpush(type, (char*)buff, n);
+}
+
+uint64
+sys_mqpop(void)
+{
+  int n;
+  uint64 type, buff;
+  
+  if(argaddr(0, &type) < 0)
+    return -1;
+  if(argaddr(1, &buff) < 0)
+    return -1;
+  if(argint(2, &n) < 0)
+    return -1;
+  return mqpop((int*)type, (char*)buff, n);
+}
+
+uint64
+sys_mqtypepop(void)
+{
+  int type, n;
+  uint64 buff;
+  
+  if(argint(0, &type) < 0)
+    return -1;
+  if(argaddr(1, &buff) < 0)
+    return -1;
+  if(argint(2, &n) < 0)
+    return -1;
+  return mqtypepop(type, (char*)buff, n);
+}

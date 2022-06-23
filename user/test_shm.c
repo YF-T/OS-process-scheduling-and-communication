@@ -14,7 +14,6 @@ int main(int argc, char *argv[])
     char* buff[10];
     sempend(semid);
     shmread(shmid, buff, 8);
-    printf("%s\n",buff);
     write(1, buff, 8);
     exit(0);
   }

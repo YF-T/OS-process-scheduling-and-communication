@@ -28,4 +28,7 @@
 #define SYS_shmfree   27
 #define SYS_shmread   28
 #define SYS_shmwrite  29
+#define SYS_mqpush    30
+#define SYS_mqpop     31
+#define SYS_mqtypepop 32
 

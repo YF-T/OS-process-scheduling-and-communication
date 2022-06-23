@@ -112,6 +112,9 @@ extern uint64 sys_shmalloc(void);
 extern uint64 sys_shmfree(void);
 extern uint64 sys_shmread(void);
 extern uint64 sys_shmwrite(void);
+extern uint64 sys_mqpush(void);
+extern uint64 sys_mqpop(void);
+extern uint64 sys_mqtypepop(void);
 
 static uint64 (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -143,6 +146,9 @@ static uint64 (*syscalls[])(void) = {
 [SYS_shmfree]   sys_shmfree,
 [SYS_shmread]   sys_shmread,
 [SYS_shmwrite]  sys_shmwrite,
+[SYS_mqpush]    sys_mqpush,
+[SYS_mqpop]     sys_mqpop,
+[SYS_mqtypepop] sys_mqtypepop,
 };
 
 void
