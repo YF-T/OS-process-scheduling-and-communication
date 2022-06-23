@@ -36,3 +36,9 @@ entry("getpid");
 entry("sbrk");
 entry("sleep");
 entry("uptime");
+entry("settickets");
+entry("semalloc");
+entry("semfree");
+entry("sempend");
+entry("sempost");
+

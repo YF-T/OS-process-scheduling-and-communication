@@ -27,6 +27,7 @@ int semalloc(int);
 void semfree(int);
 void sempend(int);
 void sempost(int);
+void settickets(int, int);
 
 // ulib.c
 int stat(const char*, struct stat*);

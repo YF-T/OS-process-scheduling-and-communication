@@ -108,6 +108,7 @@ extern uint64 sys_semalloc(void);
 extern uint64 sys_semfree(void);
 extern uint64 sys_sempend(void);
 extern uint64 sys_sempost(void);
+extern uint64 sys_settickets(void);
 
 static uint64 (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -135,6 +136,7 @@ static uint64 (*syscalls[])(void) = {
 [SYS_semfree]   sys_semfree,
 [SYS_sempend]   sys_sempend,
 [SYS_sempost]   sys_sempost,
+[SYS_settickets] sys_settickets,
 };
 
 void

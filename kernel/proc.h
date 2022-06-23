@@ -1,3 +1,5 @@
+#define DEFAULT_TICKET 1
+
 // Saved registers for kernel context switches.
 struct context {
   uint64 ra;
@@ -92,7 +94,7 @@ struct proc {
   int killed;                  // If non-zero, have been killed
   int xstate;                  // Exit status to be returned to parent's wait
   int pid;                     // Process ID
-
+  
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
 
@@ -105,4 +107,10 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  int tickets;                 // Tickets for lottery algorithm
+  int priority;
 };
+
+int random(int max);
+
+void settickets(int pid, int tickets);

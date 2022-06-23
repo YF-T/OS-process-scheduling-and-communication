@@ -138,3 +138,14 @@ sys_sempost(void)
   sempost(semid);
   return 0;
 }
+
+uint64
+sys_settickets(void) {
+  int pid;
+  int tickets;
+
+  if(argint(0, &pid) < 0 || argint(1, &tickets) < 0)
+    return -1;
+  settickets(pid, tickets);
+  return 0;
+}
