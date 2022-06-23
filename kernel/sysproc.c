@@ -147,6 +147,7 @@ sys_settickets(void) {
   if(argint(0, &pid) < 0 || argint(1, &tickets) < 0)
     return -1;
   settickets(pid, tickets);
+  return 0;
 }
 
 uint64

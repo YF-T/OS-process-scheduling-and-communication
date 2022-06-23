@@ -138,6 +138,8 @@ showpid:
 .global changepri
 changepri:
  li a7, SYS_changepri
+ ecall
+ ret
 .global shmalloc
 shmalloc:
  li a7, SYS_shmalloc
