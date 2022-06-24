@@ -482,15 +482,18 @@ scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
-  // struct proc* priorproc=0;
-  // struct proc* q=0;
-  
+  #if defined PQ || defined FCFS
+  struct proc* priorproc = 0;
+  struct proc* q = 0;
+  #endif
+  #ifdef MFQ
+  int highDone = 0;
+  int midDone = 0;
+  #endif
   c->proc = 0;
 
   // for Multilevel feedback queue
-  // int highDone = 0;
-  // int midDone = 0;
-
+ 
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
@@ -503,7 +506,8 @@ scheduler(void)
         release(&p->lock);
         continue;
       }
-      // ---lottery start---     
+        
+      #ifdef LOTTERY 
       total_tickets = get_total_tickets();
       int draw = -1;
       if (total_tickets > 0) {
@@ -516,66 +520,67 @@ scheduler(void)
         release(&p->lock);
         continue;
       }
-      // ---lottery end---
+      #endif
       
-      // ---FCFS start---
-      // if(p != 0){
-      //   priorproc=p;
-      //   //找一个最早创建的进程
-      //   for(q=proc;q<&proc[NPROC];q++){
-      //     if(q!=p){
-      //       if((q->state==RUNNABLE)&&(priorproc->pid>q->pid)){
-      //         priorproc=q;
-      //       }
-      //     }
-      //   }
-      //   release(&p->lock);
-      //   p = priorproc;
-      //   acquire(&p->lock);
-      // }
-      // ---FCFS end ---
+      #ifdef FCFS
+      if(p != 0){
+        priorproc=p;
+        //找一个最早创建的进程
+        for(q=proc;q<&proc[NPROC];q++){
+          if(q!=p){
+            if((q->state==RUNNABLE)&&(priorproc->pid>q->pid)){
+              priorproc=q;
+            }
+          }
+        }
+        release(&p->lock);
+        p = priorproc;
+        acquire(&p->lock);
+      }
+      #endif
 
-      // ---Priority Queue start---
-      // if(p != 0){
-      // priorproc = p;
-      // for (q = proc; q < &proc[NPROC]; q++){ //找到优先级最高的进程
-      // if(q!=p){
-      //     //acquire(&q->lock);
-      //     if ((q->state == RUNNABLE)&&(priorproc->priority < q->priority)){
-            
-      //       priorproc = q;
-      //     }
-      //   }
-      //   release(&p->lock); q
-      //   p = priorproc;
-      //   acquire(&p->lock);
-      // }
-      // ---Priority Queue end ---
       
-      // ---Multilevel Feedback Queue start---
-      // 将进程表划分为 3 个部分，0~15 为中优先级，16~31 为中优先级，32~48 为较低优先级，49~63 为低优先级
-      // if (p!=0) {
-      //   int i = p - &proc[0]; // 获取偏移
+      #ifdef PQ // Priority Queue
+      if(p != 0){
+      priorproc = p;
+      for (q = proc; q < &proc[NPROC]; q++){ //找到优先级最高的进程
+      if(q!=p){
+          //acquire(&q->lock);
+          if ((q->state == RUNNABLE)&&(priorproc->priority < q->priority)){
+            
+            priorproc = q;
+          }
+        }
+        release(&p->lock); q
+        p = priorproc;
+        acquire(&p->lock);
+      }
+      #endif
+      
+      #ifdef MFQ // Multilevel Feedback Queue 
+      将进程表划分为 3 个部分，0~15 为中优先级，16~31 为中优先级，32~48 为较低优先级，49~63 为低优先级
+      if (p!=0) {
+        int i = p - &proc[0]; // 获取偏移
         
 
-      //  if (isHighPriority(i)) {
-      //   highDone = 1; 
-      //  } else if (isMidPriority(i)) {
-      //   if (!highDone) {
-      //     midDone = 1;
-      //   }
-      //  } else { // low isLowPriority
-      //   if (highDone || midDone) {
-      //     continue;
-      //   }
-      //  }
+       if (isHighPriority(i)) {
+        highDone = 1; 
+       } else if (isMidPriority(i)) {
+        if (!highDone) {
+          midDone = 1;
+        }
+       } else { // low isLowPriority
+        if (highDone || midDone) {
+          continue;
+        }
+       }
 
-      // if (p->run_time > TIME_THRESHOLD) {
-      //   lower_priority(p);
-      // }
-      // }
+      if (p->run_time > TIME_THRESHOLD) {
+        lower_priority(p);
+      }
+      }
+      #endif
       
-      // ---Multilevel Feedback Queue end---
       
       if(p->state == RUNNABLE)
       {
@@ -841,14 +846,14 @@ int
 get_total_tickets() 
 {
   struct proc *p;
-  int total_tickets = 0;
+  int t = 0;
   for(p = proc; p < &proc[NPROC]; p++){
     if (p->state == RUNNABLE) {
-			total_tickets += p->tickets;
+			t += p->tickets;
 		}
   }
 
-  return total_tickets;
+  return t;
 }
 
 void
