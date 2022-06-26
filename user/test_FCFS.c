@@ -4,11 +4,19 @@
 int main(int argc, char *argv[])
 {
 	int a = 0;
+  if (fork() == 0)
+  {
+    while(1);
+  }
+  if (fork() == 0)
+  {
+    while(1);
+  }
 	if (fork() == 0)
 	{
 		for (int i = 0; i < 10; i++)
 			write(1, "a", 1);
-		for (int i = 0; i < 10000000; i++)
+		for (int i = 0; i < 100000000; i++)
 		a += 1;
 		exit(0);
 	}
@@ -30,9 +38,10 @@ int main(int argc, char *argv[])
 	}
 	for (int i = 0; i < 1000000000; i++)
 		a += 1;
-	printf("\n");
+	
 	wait(0);
 	wait(0);
 	wait(0);
+  printf("\n");
 	exit(0);
 }

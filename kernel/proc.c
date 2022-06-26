@@ -5,7 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
-
+#include "schedule.h"
 
 struct cpu cpus[NCPU];
 
@@ -13,7 +13,31 @@ struct proc proc[NPROC];
 
 struct proc *initproc;
 
+#define HIGH_PRIORITY_END 15
+#define MID_PRIORITY_END 40
+#define TIME_THRESHOLD 300
+
+#define isHighPriority(i) 0 <= (i) && (i) <= HIGH_PRIORITY_END
+#define isMidPriority(i) HIGH_PRIORITY_END < (i) && (i) <= MID_PRIORITY_END
+#define isLowPriority(i) MID_PRIORITY_END < (i) && (i) < NPROC
+#define procOffset(i)
+
+struct Queue {
+  struct proc* high;
+  struct proc* mid;
+  struct proc* low;
+} queue = {
+  &proc[0],
+  &proc[HIGH_PRIORITY_END + 1],
+  &proc[MID_PRIORITY_END + 1]
+  };
+
+
+
 int nextpid = 1;
+
+int total_tickets = 0; // put here for debugging
+
 struct spinlock pid_lock;
 
 extern void forkret(void);
@@ -420,6 +444,7 @@ wait(uint64 addr)
             return -1;
           }
           pid = np->pid; //deleteable
+          #ifdef DEBUG
           printf("--------------------------\n");
           printf("pid %d Created time: %d\n", pid, np->create_time);
           printf("pid %d Ready time: %d\n", pid, np->ready_time);
@@ -427,6 +452,7 @@ wait(uint64 addr)
           printf("pid %d Finish time: %d\n", pid, np->finish_time);
           printf("Current time: %d\n", ticks);
           printf("--------------------------\n");
+          #endif
           freeproc(np);
           release(&np->lock);
           release(&wait_lock);
@@ -454,96 +480,123 @@ wait(uint64 addr)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
+
 void
 scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
-  // struct proc* priorproc=0;
-  // struct proc* q=0;
-  
+  #if defined PQ || defined FCFS
+  struct proc* priorproc = 0;
+  struct proc* q = 0;
+  #endif
+  #ifdef MFQ
+  int highDone = 0;
+  int midDone = 0;
+  #endif
   c->proc = 0;
+
+  // for Multilevel feedback queue
+ 
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
     
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
+      // struct proc* priorproc=0;
+      // struct proc* q = 0;//局部变量，用于与最高优先级进程的比较
       if(p->state != RUNNABLE){
         release(&p->lock);
         continue;
       }
-      // ---lottery start---     
-      int total_tickets = get_total_tickets();
+        
+      #ifdef LOTTERY 
+      total_tickets = get_total_tickets();
       int draw = -1;
-
       if (total_tickets > 0) {
         draw = random(total_tickets);
       }
-        
-
+      
       draw = draw - p->tickets;
-
-      // process with a great number of tickets has more probability to put draw to 0 or negative and execute
+      
       if(draw >= 0) {
         release(&p->lock);
         continue;
-        
       }
-      // ---lottery end---
+      #endif
       
-      // ---priority queue start---
-      // struct proc* priorproc=0;
-      // struct proc* q = 0;//局部变量，用于与最高优先级进程的比较
-      // if(p->state != RUNNABLE){
-      //   release(&p->lock);
-      //   continue;
-      // }
-      // if(p != 0){
-      //   priorproc=p;
-      //   //找一个最早创建的进程
-      //   for(q=proc;q<&proc[NPROC];q++){
-      //     if(q!=p){
-      //       if((q->state==RUNNABLE)&&(priorproc->pid>q->pid)){
-      //         priorproc=q;
-      //       }
-      //     }
-      //   }
-      //   release(&p->lock);
-      //   p = priorproc;
-      //   acquire(&p->lock);
-      // }
-      // --- priority queue end ---
+      #ifdef FCFS
+      if(p != 0){
+        priorproc=p;
+        //找一个最早创建的进程
+        for(q=proc;q<&proc[NPROC];q++){
+          if(q!=p){
+            if((q->state==RUNNABLE)&&(priorproc->pid>q->pid)){
+              priorproc=q;
+            }
+          }
+        }
+        release(&p->lock);
+        p = priorproc;
+        acquire(&p->lock);
+      }
+      #endif
 
-      // ---FCFS start---
-      // if(p != 0){
-      //   priorproc=p;
-      //   //找一个最早创建的进程
-      //   for(q=proc;q<&proc[NPROC];q++){
-      //     if(q!=p){
-      //       acquire(&q->lock);
-      //       if((q->state==RUNNABLE)&&(priorproc->pid>q->pid)){
-      //         release(&priorproc->lock);
-      //         priorproc=q;
-      //       }
-      //       else{
-      //         release(&q->lock);
-      //       }
-      //     }
-      //   }
-      //   p = priorproc;
-      // }
-      // ---FCFS end ---
-      if(p != 0)
+      
+      #ifdef PQ // Priority Queue
+      if(p != 0){
+      priorproc = p;
+      for (q = proc; q < &proc[NPROC]; q++){ //找到优先级最高的进程
+      if(q!=p){
+          //acquire(&q->lock);
+          if ((q->state == RUNNABLE)&&(priorproc->priority < q->priority)){
+            
+            priorproc = q;
+          }
+        }
+        release(&p->lock);
+        p = priorproc;
+        acquire(&p->lock);
+      }
+      }
+      #endif
+      
+      #ifdef MFQ // Multilevel Feedback Queue 
+      //将进程表划分为 3 个部分，0~15 为中优先级，16~31 为中优先级，32~48 为较低优先级，49~63 为低优先级
+      if (p!=0) {
+        int i = p - &proc[0]; // 获取偏移
+
+       if (isHighPriority(i)) {
+        highDone = 1; 
+       } else if (isMidPriority(i)) {
+        if (!highDone) {
+          midDone = 1;
+        }
+       } else { // low isLowPriority
+        if (highDone || midDone) {
+          continue;
+        }
+       }
+
+      if (p->run_time > TIME_THRESHOLD) {
+        lower_priority(p);
+      }
+      }
+      #endif
+      
+      
+      if(p->state == RUNNABLE)
       {
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
+      p->run_time = ticks;
       c->proc = p;
       p->state = RUNNING;
-      p->run_time=ticks;
-
+      
+      
       swtch(&(c->context), &(p->context));
 
       // Process is done running for now.
@@ -779,7 +832,9 @@ procdump(void)
   };
   struct proc *p;
   char *state;
-  printf("---procdump---");
+  printf("---procdump---\n");
+  printf("total_tickets: %d\n", total_tickets);
+  printf("pid, state, name, tickets, priority\n");
   for(p = proc; p < &proc[NPROC]; p++){
     if(p->state == UNUSED)
       continue;
@@ -787,7 +842,7 @@ procdump(void)
       state = states[p->state];
     else
       state = "???";
-    printf("%d %s %s %d", p->pid, state, p->name, p->tickets);
+    printf("%d %s %s %d, %d", p->pid, state, p->name, p->tickets, p->priority);
     printf("\n");
   }
 }
@@ -796,14 +851,14 @@ int
 get_total_tickets() 
 {
   struct proc *p;
-  int total_tickets = 0;
+  int t = 0;
   for(p = proc; p < &proc[NPROC]; p++){
     if (p->state == RUNNABLE) {
-			total_tickets += p->tickets;
+			t += p->tickets;
 		}
   }
 
-  return total_tickets;
+  return t;
 }
 
 void
@@ -817,7 +872,7 @@ settickets(int pid, int tickets)
     }
     release(&p->lock);
   }
-  procdump(); 
+  //procdump(); 
 
 }
 
@@ -835,14 +890,14 @@ random(int max) {
   static int z4 = 12345; 
 
   int b;
-  b = (((z1 << 6) ^ z1) >> 13);
-  z1 = (((z1 & 4294967294) << 18) ^ b);
-  b = (((z2 << 2) ^ z2) >> 27);
-  z2 = (((z2 & 4294967288) << 2) ^ b);
+  b = (((z1 << 6) ^ z1) >> 17);
+  z1 = (((z1 & 4294967288) << 14) ^ b);
+  b = (((z2 << 2) ^ z2) >> 25);
+  z2 = (((z2 & 4294967294) << 2) ^ b);
   b = (((z3 << 13) ^ z3) >> 21);
-  z3 = (((z3 & 4294967280) << 7) ^ b);
+  z3 = (((z3 & 4294967168) << 7) ^ b);
   b = (((z4 << 3) ^ z4) >> 12);
-  z4 = (((z4 & 4294967168) << 13) ^ b);
+  z4 = (((z4 & 4294967280) << 13) ^ b);
 
   
   int rand = ((z1 ^ z2 ^ z3 ^ z4)) % max;
@@ -854,39 +909,27 @@ random(int max) {
   return rand;
 }
 
-struct proc* find_next_process(int *index1, int *index2, int *index3, uint *priority) {
-  int i;
-  struct proc* proc2;
-notfound:
-  for (i = 0; i < NPROC; i++) {
-    switch(*priority) {
-      case 1:
-        proc2 = &proc[(*index1 + i) % NPROC];
-        if (proc2->state == RUNNABLE && proc2->priority == *priority) {
-          *index1 = (*index1 + 1 + i) % NPROC;
-          return proc2; 
-        }
-      case 2:
-        proc2 = &proc[(*index2 + i) % NPROC];
-        if (proc2->state == RUNNABLE && proc2->priority == *priority) {
-          *index2 = (*index2 + 1 + i) % NPROC;
-          return proc2; 
-        }
-      case 3:
-        proc2 = &proc[(*index3 + i) % NPROC];
-        if (proc2->state == RUNNABLE && proc2->priority == *priority){
-          *index3 = (*index3 + 1 + i) % NPROC;
-          return proc2; 
-        }
-    }
+void
+move_to(struct proc* src, struct proc* dst) {
+  acquire(&dst->lock);
+  struct proc* tmp = dst;
+  dst = src;
+  src = tmp;
+  release(&dst->lock);
+}
+
+void
+lower_priority(struct proc* p) {
+  int i = p - &proc[0];
+  if (isHighPriority(i)) {
+    queue.high--;
+    queue.mid++;
+    move_to(p, queue.mid);
+  } else if (isMidPriority(i)) {
+    queue.mid--;
+    queue.low++;
+    move_to(p, queue.low);
   }
-  if (*priority == 3) {//did not find any process on any of the prorities
-    *priority = 3;
-    return 0;
-  }
-  else {
-    *priority += 1; //will try to find a process at a lower priority (ighter value of priority)
-    goto notfound;
-  }
-  return 0;
+
+  return;
 }

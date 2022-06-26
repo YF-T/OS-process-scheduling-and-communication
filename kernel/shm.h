@@ -6,10 +6,6 @@ struct sharedmemory
   struct spinlock lock;
   int status;
   int length;
-  int token;
-  int count;
-  int creator;
-  int last_modifier;
 };
 
 extern struct sharedmemory shm[NSHM];

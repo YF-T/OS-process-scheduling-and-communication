@@ -189,19 +189,19 @@ void            virtio_disk_intr(void);
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
 
 // semphore.c
-int             semalloc(int);
-void            semfree(int);
-void            sempend(int);
-void            sempost(int);
+int             semalloc(int); // 输入参数为信号量的初始值，返回一个信号量id
+void            semfree(int); // 参数为id，释放对应id的信号量
+void            sempend(int); // 参数为id，P原语
+void            sempost(int); // 参数为id，V原语
 
 // shm.c
-int             shmalloc(void);
-void            shmfree(int);
-int             shmread(int, void*, int, int);
-int             shmwrite(int, void*, int, int);
+int             shmalloc(void); // 分配共享内存，返回共享内存控制单元的id
+void            shmfree(int); // 参数为id，回收共享内存
+int             shmread(int, void*, int, int); // 读操作，参数分别为id，buffer地址，起始位置，长度，返回实际写入长度/-1（操作失败）
+int             shmwrite(int, void*, int, int); // 写操作，参数分别为id，buffer地址，起始位置，长度，返回实际读出长度/-1（操作失败）
 
 // mq.c
 void            mqinit();
-int             mqpush(int, char*, int);
-int             mqpop(int*, char*, int);
-int             mqtypepop(int, char*, int);
+int             mqpush(int, char*, int); // 入队操作，参数分别为消息类型，消息内容指针，消息大小
+int             mqpop(int*, char*, int); // 不指定类型的出队，参数分别为存储出队消息类型的指针，存储消息内容的缓冲区指针，缓冲区大小
+int             mqtypepop(int, char*, int); // 指定类型的出队，参数分别为指定的消息类型，存储消息内容的缓冲区指针，缓冲区大小

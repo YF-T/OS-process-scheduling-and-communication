@@ -12,7 +12,7 @@
 struct sharedmemory shm[NSHM];
 
 int
-shmalloc()
+shmalloc() // 分配内存
 {
   for(int i = 0; i < NSHM; i++){
     acquire(&shm[i].lock);
@@ -33,7 +33,7 @@ shmalloc()
 }
 
 void
-shmfree(int shmid)
+shmfree(int shmid) // 释放共享内存
 {
   acquire(&shm[shmid].lock);
   kfree(shm[shmid].addr);
@@ -42,7 +42,7 @@ shmfree(int shmid)
 }
 
 int
-shmread(int shmid, void* buff, int start, int n)
+shmread(int shmid, void* buff, int start, int n) // 共享内存读操作
 {
   acquire(&shm[shmid].lock);
   if(n + start > shm[shmid].length){
@@ -55,7 +55,7 @@ shmread(int shmid, void* buff, int start, int n)
 }
 
 int
-shmwrite(int shmid, void* buff, int start, int n)
+shmwrite(int shmid, void* buff, int start, int n) // 共享内存写操作
 {
   acquire(&shm[shmid].lock);
   if(start + n > PGSIZE){

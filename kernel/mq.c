@@ -130,7 +130,7 @@ int qtypepop(int type, struct message *m)
   return 0;
 }
 
-void mqinit()
+void mqinit() // 初始化
 {
   char *addr;
   int index = 0;
@@ -145,7 +145,7 @@ void mqinit()
   }
 }
 
-int mqpush(int type, char *buff, int n)
+int mqpush(int type, char *buff, int n) // 入队操作
 {
   acquire(&mqlock);
   struct message tem;
@@ -156,7 +156,7 @@ int mqpush(int type, char *buff, int n)
   return 0;
 }
 
-int mqpop(int *type, char *buff, int n)
+int mqpop(int *type, char *buff, int n) // 不指定类型的出队操作
 {
   acquire(&mqlock);
   struct message tem;
@@ -172,7 +172,7 @@ int mqpop(int *type, char *buff, int n)
   return ans;
 }
 
-int mqtypepop(int type, char *buff, int n)
+int mqtypepop(int type, char *buff, int n) // 指定类型的出队操作
 {
   acquire(&mqlock);
   struct message tem;

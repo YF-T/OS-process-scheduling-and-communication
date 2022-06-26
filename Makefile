@@ -53,6 +53,10 @@ endif
 
 QEMU = qemu-system-riscv64
 
+ifndef SCHED
+SCHED := DEFAULT
+endif
+
 CC = $(TOOLPREFIX)gcc
 AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
@@ -63,6 +67,7 @@ CFLAGS = -Wall -Werror -O -fno-omit-frame-pointer -ggdb
 CFLAGS += -MD
 CFLAGS += -mcmodel=medany
 CFLAGS += -ffreestanding -fno-common -nostdlib -mno-relax
+CFLAGS += -D $(SCHED)
 CFLAGS += -I.
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 
@@ -135,8 +140,6 @@ UPROGS=\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
-	$U/_pingpong\
-	$U/_processtest\
 	$U/_test_FCFS\
   $U/_test_semaphore\
   $U/_test_lottery\
@@ -144,6 +147,13 @@ UPROGS=\
   $U/_newfork\
   $U/_test_shm\
   $U/_test_mq\
+  $U/_test_process\
+  $U/_settickets\
+  $U/_test_busy\
+  $U/_test_mix\
+  $U/_test_dead\
+  $U/_test_PQ\
+  $U/_test_PS\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
@@ -171,6 +181,9 @@ endif
 QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS) -nographic
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+
+flags:
+	@echo $(SCHED)
 
 qemu: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS)

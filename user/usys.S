@@ -105,6 +105,11 @@ uptime:
  li a7, SYS_uptime
  ecall
  ret
+.global settickets
+settickets:
+ li a7, SYS_settickets
+ ecall
+ ret
 .global semalloc
 semalloc:
  li a7, SYS_semalloc
@@ -123,6 +128,16 @@ sempend:
 .global sempost
 sempost:
  li a7, SYS_sempost
+ ecall
+ ret
+.global showpid
+showpid:
+ li a7, SYS_showpid
+ ecall
+ ret
+.global changepri
+changepri:
+ li a7, SYS_changepri
  ecall
  ret
 .global shmalloc
